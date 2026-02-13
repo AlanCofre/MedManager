@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   ChevronRight,
 } from "lucide-react";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // false con backend
 const USE_MOCK = false;
@@ -588,6 +590,50 @@ export default function AdminMatriculas() {
       }
     }
   };
+
+  const cargarPeriodos = async () => {
+    setLoadingPeriodos(true);
+    try {
+      const data = await api.getPeriodos();
+      setPeriodos(data);
+      // autoselect primero
+      if (data?.length && !periodoId) setPeriodoId(data[0].id);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } finally {
+      setLoadingPeriodos(false);
+    }
+  };
+
+  const cargarCursos = async () => {
+    setLoadingCursos(true);
+    try {
+      const data = await api.getCursos(periodoId);
+      setCursos(data);
+      // reset curso cuando cambia el periodo
+      setCursoId(data?.[0]?.id || "");
+      await new Promise(resolve => setTimeout(resolve, 800));
+    } finally {
+      setLoadingCursos(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loadingPeriodos) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando matrículas..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-app dark:bg-none">

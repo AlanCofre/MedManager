@@ -172,25 +172,8 @@ export default function LicenciasEstudiante() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-app dark:bg-none">
-        <Navbar />
-        <main className="flex-1 w-full">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-5xl">
-            <div className="mb-8">
-              <div className="animate-pulse bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-48 mx-auto mb-6"></div>
-                <div className="flex justify-center gap-4 flex-wrap">
-                  <div className="h-10 bg-gray-200 rounded w-32"></div>
-                  <div className="h-10 bg-gray-200 rounded w-32"></div>
-                  <div className="h-10 bg-gray-200 rounded w-32"></div>
-                </div>
-              </div>
-            </div>
-            <SkeletonLoader type="table" count={5} />
-          </div>
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <LoadingSpinner size="large" text="Cargando mis licencias..." />
       </div>
     );
   }

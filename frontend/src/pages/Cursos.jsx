@@ -15,6 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // ⛳ Cambia a true si necesitas usar mocks temporalmente
 const USE_MOCK = false;
@@ -567,18 +569,10 @@ export default function AdminCursos() {
 
   const filteredCount = cursos.length;
 
-  // Renderizado condicional mejorado
-  if (loadingInitial) {
+  if (loadingList) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600">Cargando datos iniciales...</p>
-          </div>
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando cursos..." />
       </div>
     );
   }
@@ -915,6 +909,7 @@ export default function AdminCursos() {
       </main>
 
       <Toast toast={toast} onClose={() => setToast(null)} />
+        
       <Footer />
     </div>
   );

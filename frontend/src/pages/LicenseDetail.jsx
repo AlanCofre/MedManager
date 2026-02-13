@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 export default function LicenseDetail() {
   const { id } = useParams();
@@ -66,10 +68,10 @@ export default function LicenseDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <main className="container mx-auto px-6 py-12">
-          <div className="animate-pulse bg-white h-48 rounded-lg" />
+        <main className="container mx-auto px-4 py-8">
+          <SkeletonLoader type="detail" count={1} />
         </main>
         <Footer />
       </div>

@@ -1,11 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import LoadingSpinner from '../components/LoadingSpinner';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 const VerificarResultados = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      setIsInitialLoading(true);
+      try {
+        // Simular carga inicial
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -30,6 +47,27 @@ const VerificarResultados = () => {
     }
   };
 
+  const handleVerify = async () => {
+    setLoading(true);
+    try {
+      // Simular verificación
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <LoadingSpinner size="large" text="Cargando verificador..." />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
@@ -112,6 +150,26 @@ const VerificarResultados = () => {
               </div>
             </div>
           )}
+
+          {/* Botón de verificación */}
+          <div className="mt-8">
+            <button
+              onClick={handleVerify}
+              disabled={loading}
+              className={`px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold transition ${
+                loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+              }`}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <LoadingSpinner size="small" color="white" />
+                  Verificando...
+                </div>
+              ) : (
+                'Verificar Resultados'
+              )}
+            </button>
+          </div>
         </div>
       </main>
 

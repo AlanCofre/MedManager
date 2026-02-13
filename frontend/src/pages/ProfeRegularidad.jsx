@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import AlertaLicenciasAnual from "../components/AlertaLicenciasAnual";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
 import { useEstudiantesProfesor } from "../hooks/useRegularidad";
 import { Clock, Search, Eye, AlertTriangle, CheckCircle, Info } from "lucide-react";
@@ -160,9 +162,13 @@ const LeyendaRegularidad = () => (
 export default function ProfesorRegularidad() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { estudiantes, loading, error } = useEstudiantesProfesor();
-  
-  const [filterCurso, setFilterCurso] = useState("");
+  const [loading, setLoading] = useState(true);
+  const role = String(user?.role || "").toLowerCase();
+  const isTeacher = role === "profesor" || role === "teacher";
+  const isAdmin = role === "admin" || role === "administrador" || role === "administrator";
+  const año = new Date().getFullYear();
+
+  const [filterCourse, setFilterCourse] = useState("");
   const [search, setSearch] = useState("");
 
   // Verificar permisos
@@ -224,6 +230,41 @@ export default function ProfesorRegularidad() {
     );
   }
 
+      return { ...st, validated, lastUpload, uploadedLastMonth, missedDays, missedPercent, status, licporAño, cantidadAño, excedeLicencias };
+    });
+  }, []);
+
+  const filtered = useMemo(() => {
+    return enriched.filter((s) => {
+      if (filterCourse && `${s.course} - ${s.section}` !== filterCourse) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return s.name.toLowerCase().includes(q) || s.legajo.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [enriched, filterCourse, search]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando regularidad de estudiantes..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-blue-50 dark:bg-app dark:bg-none">
       <Navbar />
@@ -273,14 +314,94 @@ export default function ProfesorRegularidad() {
           </div>
         </div>
 
-        {/* Leyenda */}
-        <LeyendaRegularidad />
+        <div className="bg-white dark:bg-surface rounded-2xl shadow overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gradient-to-r from-blue-50 to-indigo-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Estudiante
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Ramo
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Última subida
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Licencias (30d)
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Faltas estimadas
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider w-32">
+                  Estado
+                </th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                  Acción
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s) => (
+                <React.Fragment key={s.id}>
+                  <tr className="hover:bg-blue-50 dark:hover:bg-app/20 border-b dark:border-app">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center font-semibold text-blue-800 dark:text-blue-300">{initialsFromName(s.name)}</div>
+                        <div>
+                          <div className="font-medium dark:text-white">{s.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-muted">{s.legajo}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 dark:text-white">
+                      <div className="font-medium">{s.course} · {s.section}</div>
+                    </td>
+                    <td className="px-6 py-4 dark:text-white">{s.lastUpload || "-"}</td>
+                    <td className="px-6 py-4 dark:text-white">{s.uploadedLastMonth}</td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm dark:text-white">
+                        <div>{s.missedDays} días</div>
+                        <div className="text-xs text-gray-500 dark:text-muted">{s.missedPercent}% del periodo</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center justify-center min-w-[120px] px-4 py-2 rounded-full text-sm font-semibold ${
+                        s.missedPercent >= ATTENDANCE_THRESHOLD_PERCENT ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" :
+                        s.status === "Afecta" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300" :
+                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                      }`}>
+                        {s.missedPercent >= ATTENDANCE_THRESHOLD_PERCENT ? "En riesgo" : s.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <Link to={`/profesor/regularidad/${s.id}`} className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded hover:from-blue-700 hover:to-indigo-700">
+                        <Eye className="h-4 w-4" />
+                        Ver
+                      </Link>
+                    </td>
+                  </tr>
+                  {/* Fila expandida con alerta de licencias anuales si excede */}
+                  {s.excedeLicencias && (
+                    <tr className="bg-red-50 dark:bg-red-900/20">
+                      <td colSpan={7} className="px-6 py-3">
+                        <AlertaLicenciasAnual licenciasporAño={s.licporAño} año={año} />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
 
-        {/* Tabla de estudiantes */}
-        <TablaEstudiantes 
-          estudiantes={estudiantesFiltrados} 
-          onVerDetalle={handleVerDetalle}
-        />
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="p-12 text-center text-gray-600 dark:text-muted">
+                    No se encontraron estudiantes para los filtros seleccionados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </main>
       <Footer />
     </div>

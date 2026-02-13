@@ -96,6 +96,12 @@ const resources = {
         btnHistory: "Historial",
         btnResults: "Verificar Resultados",
         btnMatriculas: "Mis Matrículas",
+        enrollments: "Matrículas",
+        btnRegularidad: "Regularidad académica",
+        btnAlumnos: "Alumnos",
+        btnTablero: "Tablero",
+        btnPeriodos: "Periodos",
+        btnCursos: "Cursos",
       },
 
       // 🧩 Footer
@@ -680,6 +686,12 @@ const resources = {
         btnHistory: "History",
         btnResults: "Check Results",
         btnMatriculas: "My Enrollments",
+        enrollments: "Enrollments",
+        btnRegularidad: "Academic Regularity",
+        btnAlumnos: "Students",
+        btnTablero: "Dashboard",
+        btnPeriodos: "Periods",
+        btnCursos: "Courses",
       },
 
       // 🧩 Footer

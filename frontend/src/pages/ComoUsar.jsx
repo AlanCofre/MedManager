@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BannerSection from "../components/BannerSection";
 import signo from "../assets/SignoPregunta.png";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function ComoUsar() {
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useTranslation();
 
@@ -16,6 +18,29 @@ export default function ComoUsar() {
   const isAdmin =
     role === "admin" || role === "administrador" || role === "administrator";
 
+  useEffect(() => {
+    const loadContent = async () => {
+      setIsLoading(true);
+      try {
+        // Simular carga de contenido
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadContent();
+  }, []);
+
+  // ✅ LOADING PANTALLA COMPLETA - Solo spinner
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <LoadingSpinner size="large" text="Cargando guía..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
       <Navbar />
@@ -23,7 +48,7 @@ export default function ComoUsar() {
       {/* Banner reutilizado */}
       <BannerSection />
 
-      <main className="container mx-auto px-8 py-12 flex-grow">
+      <main className="flex-1 container mx-auto px-8 py-12">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-3">
             <div className="lg:col-span-2 p-12 lg:p-16">

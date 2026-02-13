@@ -5,6 +5,7 @@ import BannerSection from "../components/BannerSection";
 import { Upload } from "lucide-react";
 import PreviewEnvio from "../components/PreviewEnvio";
 import Toast from "../components/toast";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useTranslation } from "react-i18next";
 
 const calcularHashSHA256 = async (file) => {
@@ -17,6 +18,7 @@ const calcularHashSHA256 = async (file) => {
 
 export default function GenerarRevision() {
   const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(true);
 
   const initialForm = {
     folio: "",
@@ -263,6 +265,27 @@ export default function GenerarRevision() {
 
   // Obtener fecha de hoy en formato YYYY-MM-DD para validación de fechaFinal
   const hoy = new Date().toISOString().split("T")[0];
+
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, []);
+
+  // ✅ Loading pantalla completa
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Preparando formulario..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">

@@ -9,17 +9,25 @@ import { useTranslation } from "react-i18next";
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [timer, setTimer] = useState(0);
-  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [toast, setToast] = useState(null); // { message, type }
   const navigate = useNavigate();
   const { requestReset, loading, error } = useRequestReset();
   const { t } = useTranslation();
 
-  // Mostrar errores del hook
+  // Carga inicial
   useEffect(() => {
-    if (error) {
-      setToast({ message: error, type: "error" });
-    }
-  }, [error]);
+    const loadInitialData = async () => {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadInitialData();
+  }, []);
 
   // Temporizador para bloquear reenvío
   useEffect(() => {
@@ -30,6 +38,16 @@ export default function ForgotPassword() {
     return () => clearInterval(countdown);
   }, [timer]);
 
+  // ✅ Loading pantalla completa
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando formulario..." />
+      </div>
+    );
+  }
+
+  // Función para validar formato de correo
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleRequestCode = async () => {

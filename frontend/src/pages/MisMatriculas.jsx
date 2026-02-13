@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SkeletonList from "../components/SkeletonList";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const toast = { error: (msg) => alert(msg) };
 
@@ -89,15 +90,22 @@ export default function MisMatriculas() {
     }
   }
 
+  // ✅ Loading pantalla completa
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando mis matrículas..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-blue-50 dark:bg-app dark:bg-none">
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Mis Matrículas</h1>
 
-        {loading ? (
-          <SkeletonList count={2} />
-        ) : error409 ? (
+        {error409 ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-xl mx-auto text-center">
             <p className="text-yellow-800 mb-2">
               No hay un periodo académico activo en este momento.

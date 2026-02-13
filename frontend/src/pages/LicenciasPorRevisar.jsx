@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import BannerSection from "../components/BannerSection";
 import Footer from "../components/Footer";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { Eye, Clock, Calendar, User, GraduationCap, Search } from "lucide-react";
 import { licenciasRealService } from "../services/licenciasRealService";
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
@@ -209,6 +210,13 @@ export default function LicenciasPorRevisar() {
       <Footer />
     </div>
   );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando licencias por revisar..." />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 w-full overflow-x-hidden dark:bg-app dark:bg-none">

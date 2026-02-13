@@ -31,17 +31,11 @@ export default function Dashboard() {
     loadData();
   }, []);
 
+  // ✅ LOADING PANTALLA COMPLETA - Solo spinner
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
-        <Navbar />
-        <main
-          id="main-content"
-          className="flex-1 flex items-center justify-center"
-        >
-          <LoadingSpinner size="large" text="Cargando dashboard..." />
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando dashboard..." />
       </div>
     );
   }
@@ -53,9 +47,8 @@ export default function Dashboard() {
       <main id="main-content" className="flex-1">
         <BannerSection />
 
-        {/* Espacio para contenido principal (Resumen rápido movido a otra sección) */}
+        {/* Espacio para contenido principal */}
         <div className="container mx-auto px-4 py-8">
-          {/* Aquí irá el contenido principal de la página de inicio sin el resumen rápido */}
           <div className="max-w-6xl mx-auto">
             <Announcement />
           </div>

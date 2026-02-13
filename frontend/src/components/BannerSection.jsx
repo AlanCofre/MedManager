@@ -70,7 +70,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
                     <BookOpen className="w-4 h-4 text-orange-600" strokeWidth={2} />
                   </div>
-                  <span>{t("i18n.admin.dashboard.courses", "Cursos")}</span>
+                  <span>{t("banner.btnCursos", "Cursos")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -85,7 +85,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                     <UsersRound className="w-4 h-4 text-green-600" strokeWidth={2} />
                   </div>
-                  <span>{t("i18n.admin.dashboard.enrollments", "Matrículas")}</span>
+                  <span>{t("banner.enrollments", "Matrículas")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -100,7 +100,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
                     <CalendarRange className="w-4 h-4 text-teal-600" strokeWidth={2} />
                   </div>
-                  <span>Periodos</span>
+                  <span>{t("banner.btnPeriodos", "Periodos")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -115,7 +115,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
                     <PieChart className="w-4 h-4 text-amber-600" strokeWidth={2} />
                   </div>
-                  <span>{t("i18n.admin.dashboard.summary", "Tablero")}</span>
+                  <span>{t("banner.btnTablero", "Tablero")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -132,7 +132,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
                     <GraduationCap className="w-4 h-4 text-orange-500" strokeWidth={2} />
                   </div>
-                  <span>{t("banner.prof.courses", "Cursos")}</span>
+                  <span>{t("banner.btnAlumnos", "Alumnos")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -147,7 +147,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                     <CalendarCheck className="w-4 h-4 text-green-600" strokeWidth={2} />
                   </div>
-                  <span>{t("banner.prof.academicRegularity", "Regularidad académica")}</span>
+                  <span>{t("banner.btnRegularidad", "Regularidad académica")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -237,7 +237,7 @@ const BannerSection = () => {
                   <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                     <UsersRound className="w-4 h-4 text-purple-600" strokeWidth={2} />
                   </div>
-                  <span>Mis Matrículas</span>
+                  <span>{t("banner.btnMatriculas", "Matrículas")}</span>
                 </div>
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

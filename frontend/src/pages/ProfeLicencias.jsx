@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Eye, Clock, Search, X } from "lucide-react";
+import { Eye, Clock, Search, Calendar, X } from "lucide-react";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../context/AuthContext";
 
 const PAGE_SIZE = 10;
@@ -371,6 +372,14 @@ export default function ProfeLicencias() {
     setSearchParams({});
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando licencias..." />
+      </div>
+    );
+  }
+
   /* cambiar período */
   const handleCambiarPeriodo = (nuevoPeriodo) => {
     setPeriodoActivo(nuevoPeriodo);
@@ -393,10 +402,8 @@ export default function ProfeLicencias() {
                   <Clock className="h-7 w-7 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900">Licencias Aceptadas — Mis cursos</h1>
-                  <p className="text-gray-600 mt-1">
-                    Filtra la bandeja para localizar rápidamente licencias aceptadas.
-                  </p>
+                  <h1 className="text-2xl font-bold text-gray-900">Licencias — Mis Alumnos</h1>
+                  <p className="text-gray-600 mt-1">Filtra la bandeja para localizar rápidamente licencias.</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Período activo: <span className="font-semibold">{periodoFinal}</span>
                   </p>

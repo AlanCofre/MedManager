@@ -1,10 +1,12 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import { Eye, FileDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // Reuse same mock dataset (duplicated for simplicity)
 const studentsMock = [
@@ -91,6 +93,9 @@ export default function EstudianteRegularidad() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [regularidadData, setRegularidadData] = useState(null);
+
   // Si quieres volver a habilitar la protección por rol, descomenta este bloque
   /*
   if (!isTeacher && !isAdmin) {
@@ -120,6 +125,43 @@ export default function EstudianteRegularidad() {
   */
 
   const student = studentsMock.find((s) => s.id === studentId);
+
+  useEffect(() => {
+    loadRegularidadData();
+  }, []);
+
+  const loadRegularidadData = async () => {
+    setIsLoading(true);
+    try {
+      // Simular carga de datos de regularidad
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      setRegularidadData({
+        asistencia: 85,
+        cursos: ["Matemáticas", "Historia"],
+        estado: "Regular",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-48"></div>
+            </div>
+          </div>
+          <SkeletonLoader type="table" count={4} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!student) {
     return (

@@ -4,9 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { getMiPerfil, updateMiPerfil } from "../services/perfilService";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 function EditarPerfil() {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [cargando, setCargando] = useState(false);
   const [fotoPerfil, setFotoPerfil] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -142,11 +145,18 @@ function EditarPerfil() {
     navigate(-1);
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
-      <Navbar />
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando perfil..." />
+      </div>
+    );
+  }
 
-      <main id="contenido-principal" className="flex-1 container mx-auto px-4 py-8">
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Navbar />
+      <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Volver y título */}
           <div className="mb-6">
@@ -286,9 +296,18 @@ function EditarPerfil() {
               <button
                 type="submit"
                 disabled={cargando}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md font-medium transition ${
+                  cargando ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'
+                }`}
               >
-                {cargando ? "Guardando..." : "Guardar cambios"}
+                {cargando ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <LoadingSpinner size="small" color="white" />
+                    Guardando...
+                  </div>
+                ) : (
+                  "Guardar cambios"
+                )}
               </button>
             </div>
           </form>

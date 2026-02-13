@@ -6,6 +6,7 @@ import BannerSection from "../components/BannerSection";
 import { CheckCircle, XCircle, Clock, Calendar, User, GraduationCap, Search, Eye } from "lucide-react";
 import { licenciasRealService } from "../services/licenciasRealService";
 const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/,"") ?? "http://localhost:3000";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 // Probaremos estos endpoints en orden hasta que uno devuelva 200
 const LIST_PATH = "/api/licencias/resueltas";
@@ -117,15 +118,8 @@ useEffect(() => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 dark:bg-app dark:bg-none">
-        <Navbar />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-2xl shadow-lg text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-lg text-gray-700">Cargando historial...</p>
-          </div>
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 dark:bg-app dark:bg-none">
+        <LoadingSpinner size="large" text="Cargando historial..." />
       </div>
     );
   }
