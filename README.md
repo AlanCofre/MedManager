@@ -65,9 +65,7 @@ Integrantes
 
 ## Estado del proyecto
 
-Sprint 2
-[Alan, edita lo q llevamos aca, q yo solo cacho lo que llevo yo y un poco del frontend]
-
+[En pausa momentaneamente]
 ---
 
 ## Licencia / Uso académico
