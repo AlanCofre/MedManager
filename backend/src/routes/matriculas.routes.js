@@ -22,5 +22,5 @@ router.get('/', requireAuth, esAdmin, listarMatriculas);
 router.post('/', requireAuth, esAdmin, crearMatriculaAdmin);
 router.delete('/:id_matricula', requireAuth, esAdmin, eliminarMatricula);
 router.get('/curso/:id_curso', requireAuth, esAdmin, matriculasPorCurso);
-router.get('/estudiantes', [esAdmin], buscarEstudiantesPorEmail);
+router.get('/estudiantes', requireAuth, esAdmin, buscarEstudiantesPorEmail);
 export default router;

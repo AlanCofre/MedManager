@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -110,27 +110,25 @@ const api = {
       }));
     }),
 
-  // Buscar estudiantes POR EMAIL → [{id, nombre, email}]
-  searchEstudiantes: (email) =>
+  // Buscar estudiantes POR EMAIL O NOMBRE → [{id, nombre, email}]
+  searchEstudiantes: (query) =>
     (async () => {
-      console.log("[Matriculas] buscando estudiante por email:", email);
+      console.log("[Matriculas] buscando estudiante por query:", query);
 
-      const emailTrimmed = (email || "").trim().toLowerCase();
+      const queryTrimmed = (query || "").trim().toLowerCase();
 
-      // Validar que sea un email válido
-      const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
-      if (!isValidEmail) {
-        console.warn("[Matriculas] email inválido:", emailTrimmed);
+      if (!queryTrimmed) {
         return [];
       }
 
       // Intentar múltiples rutas que el backend podría exponer
       const endpoints = [
-        `/estudiantes?email=${encodeURIComponent(emailTrimmed)}`,
-        `/estudiantes/email/${encodeURIComponent(emailTrimmed)}`,
-        `/estudiantes/buscar?email=${encodeURIComponent(emailTrimmed)}`,
-        `/admin/estudiantes?email=${encodeURIComponent(emailTrimmed)}`,
-        `/admin/estudiantes/email/${encodeURIComponent(emailTrimmed)}`,
+        `/matriculas/estudiantes?email=${encodeURIComponent(queryTrimmed)}`,
+        `/estudiantes?email=${encodeURIComponent(queryTrimmed)}`,
+        `/estudiantes/email/${encodeURIComponent(queryTrimmed)}`,
+        `/estudiantes/buscar?email=${encodeURIComponent(queryTrimmed)}`,
+        `/admin/estudiantes?email=${encodeURIComponent(queryTrimmed)}`,
+        `/admin/estudiantes/email/${encodeURIComponent(queryTrimmed)}`,
       ];
 
       let lastErr = null;
@@ -404,6 +402,43 @@ export default function AdminMatriculas() {
   const [q, setQ] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const searchTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (!addOpen) {
+      return;
+    }
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    const query = q.trim();
+    if (!query) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+    searchTimeoutRef.current = window.setTimeout(async () => {
+      try {
+        const data = await api.searchEstudiantes(query);
+        setResults(data);
+      } catch (error) {
+        console.error("[Matriculas] error buscando estudiantes:", error);
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [q, addOpen]);
 
   // confirm remove
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -862,10 +897,10 @@ export default function AdminMatriculas() {
                 <div className="flex-1 flex items-center w-full bg-white border border-gray-300 rounded-lg shadow-sm px-3 py-2">
                   <Search className="w-5 h-5 text-gray-400 mr-2" />
                   <input
-                    type="email"
+                    type="text"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
-                    placeholder="Ingresa correo electrónico del estudiante..."
+                    placeholder="Ingresa nombre o correo del estudiante..."
                     className="flex-1 outline-none text-gray-700 placeholder-gray-400"
                   />
                 </div>
