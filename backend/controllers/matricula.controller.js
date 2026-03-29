@@ -16,16 +16,12 @@ export const buscarEstudiantesPorEmail = async (req, res) => {
 
     if (!emailRaw) {
       // Para el UI conviene no reventar, solo devolver vacío
-      return ok(res, [], 'Email vacío, sin resultados');
+      return ok(res, [], 'Búsqueda vacía, sin resultados');
     }
 
-    // Validación mínima de formato
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailRaw)) {
-      return ok(res, [], 'Email con formato inválido');
-    }
+    // No validar formato estricto, permitir búsqueda por nombre o email parcial
 
-    // Solo estudiantes (id_rol = 2) y match exacto por correo
+    // Solo estudiantes (id_rol = 2) y match parcial por correo o nombre
     const [rows] = await db.execute(
       `SELECT 
          u.id_usuario,
@@ -33,13 +29,14 @@ export const buscarEstudiantesPorEmail = async (req, res) => {
          u.correo_usuario,
          u.id_rol
        FROM usuario u
-       WHERE LOWER(u.correo_usuario) = ?
-         AND u.id_rol = 2`,
-      [emailRaw]
+       WHERE (LOWER(u.correo_usuario) LIKE ? OR LOWER(u.nombre) LIKE ?)
+         AND u.id_rol = 2
+       LIMIT 10`,
+      [`%${emailRaw}%`, `%${emailRaw}%`]
     );
 
     // No tiramos 404: devolvemos [] para que el frontend muestre "sin resultados"
-    return ok(res, rows, rows.length ? 'Estudiante encontrado' : 'Sin resultados');
+    return ok(res, rows, rows.length ? `${rows.length} estudiante(s) encontrado(s)` : 'Sin resultados');
   } catch (error) {
     console.error('[matriculas] buscarEstudiantesPorEmail error:', error);
     return fail(res, 'Error interno al buscar estudiante por email', 500);
