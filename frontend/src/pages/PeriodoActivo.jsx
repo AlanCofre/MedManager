@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-import { Calendar, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Calendar, CheckCircle2, XCircle, AlertTriangle, Loader2, Plus } from "lucide-react";
 
 // =============================== API REAL ===============================
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
@@ -60,6 +60,14 @@ async function activarPeriodo(id) {
   });
 }
 
+// Crear un nuevo periodo
+async function crearPeriodo(data) {
+  return apiRequest("/periodos", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 // =============================== TOAST ===============================
 function Toast({ kind = "error", title, desc, onClose }) {
   const palette =
@@ -113,6 +121,80 @@ function ConfirmModal({ open, title, message, confirmLabel = "Confirmar", cancel
   );
 }
 
+// =============================== MODAL CREAR PERIODO ===============================
+function CreatePeriodoModal({ open, onClose, onSuccess }) {
+  const [codigo, setCodigo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  if (!open) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    const codigoRegex = /^\d{4}-[12]$/;
+    if (!codigoRegex.test(codigo)) {
+      setError("Formato inválido. Use AÑO-SEMESTRE (ej: 2025-1)");
+      return;
+    }
+    setLoading(true);
+    try {
+      await crearPeriodo({ codigo });
+      onSuccess(codigo);
+      setCodigo("");
+    } catch (e) {
+      setError(e.message || "Error al crear el periodo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white dark:bg-surface w-full max-w-md rounded-2xl shadow-xl border border-gray-100 dark:border-app p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Crear Nuevo Periodo</h3>
+        <p className="text-sm text-gray-600 dark:text-muted mt-1">
+          Ingresa el código para el nuevo periodo académico.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-4">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Código (Ej: 2025-1)
+            </label>
+            <input
+              type="text"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+              placeholder="YYYY-S"
+              required
+              className="w-full px-3 py-2 border border-gray-300 dark:border-app rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-app text-gray-900 dark:text-white outline-none"
+            />
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-app text-gray-700 dark:text-gray-300 bg-white dark:bg-surface hover:bg-gray-50 dark:hover:bg-app"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow flex items-center gap-2"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Crear Periodo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // =============================== PAGE ===============================
 export default function AdminPeriodos() {
   const { user } = useAuth?.() ?? {};
@@ -130,6 +212,8 @@ export default function AdminPeriodos() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toActivate, setToActivate] = useState(null);
   const [activating, setActivating] = useState(false);
+
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const activoNombre = useMemo(() => {
     if (!activo?.id_periodo) return null;
@@ -281,7 +365,15 @@ export default function AdminPeriodos() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setCreateModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition shadow-sm font-medium text-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nuevo Periodo
+                </button>
+                <div className="h-6 w-px bg-gray-200 dark:bg-app hidden sm:block"></div>
                 {activo?.id_periodo ? (
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700">
                     Activo: {activoNombre}
@@ -401,6 +493,21 @@ export default function AdminPeriodos() {
       {toast && (
         <Toast kind={toast.kind} title={toast.title} desc={toast.desc} onClose={closeToast} />
       )}
+
+      {/* Modal de Crear */}
+      <CreatePeriodoModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={(codigo) => {
+          setCreateModalOpen(false);
+          setToast({
+            kind: "success",
+            title: "Periodo creado",
+            desc: `El periodo ${codigo} se ha creado exitosamente.`,
+          });
+          refetch();
+        }}
+      />
     </div>
   );
 }
