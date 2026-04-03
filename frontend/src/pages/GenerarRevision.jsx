@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BannerSection from "../components/BannerSection";
@@ -47,6 +48,8 @@ export default function GenerarRevision() {
   // Confirmación antes de enviar
   const [showConfirm, setShowConfirm] = useState(false);
   const pendingFormRef = useRef(null);
+  
+  const navigate = useNavigate();
 
   // Simulación de cursos activos (reemplaza por tu fuente real)
   const [cursosActivos, setCursosActivos] = useState([]);
@@ -86,6 +89,15 @@ export default function GenerarRevision() {
   // --- Helpers de validación ---
   const regexMotivo = /^[\p{L}\p{N}\s,-]{3,}$/u; // letras (con acentos), números, espacio, coma, guion; 3+ chars
   const isMotivoValid = (str) => regexMotivo.test((str || "").trim());
+
+  // Validar regla de 48 horas estricta
+  const getDiffHours = (fecha) => {
+    if (!fecha) return 0;
+    const emisionDate = new Date(fecha + 'T00:00:00Z');
+    const diff = (new Date() - emisionDate) / (1000 * 60 * 60);
+    return diff;
+  };
+  const fechaEmisionAtrasada = getDiffHours(formData.fechaEmision) > 48;
 
   // Manejo de inputs
   const handleChange = (e) => {
@@ -224,6 +236,7 @@ export default function GenerarRevision() {
       setMotivoTouched(false);
       setStep("form");
       setSending(false);
+      setTimeout(() => navigate('/mis-licencias'), 1500);
       return { ok: true };
 
     } catch (err) {
@@ -304,11 +317,19 @@ export default function GenerarRevision() {
                   name="fechaEmision"
                   value={formData.fechaEmision}
                   onChange={handleChange}
-                  className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className={`w-full p-3 border rounded focus:outline-none focus:ring-2 ${
+                    fechaEmisionAtrasada ? "border-red-500 focus:ring-red-400" : "focus:ring-blue-400"
+                  }`}
                 />
-                <small className="text-gray-500">
-                  {t("studentGenerateRevision.fechaEmisionHelp")}
-                </small>
+                {fechaEmisionAtrasada ? (
+                  <div className="mt-1 text-red-600 text-sm font-semibold" role="alert">
+                    Posiblemente esta licencia no sea aceptada debido a que pasó el plazo de 48 horas permitidas por la institución.
+                  </div>
+                ) : (
+                  <small className="text-gray-500">
+                    {t("studentGenerateRevision.fechaEmisionHelp")}
+                  </small>
+                )}
               </div>
 
               <div>
@@ -618,12 +639,17 @@ export default function GenerarRevision() {
             <h3 style={{ marginTop: 0 }}>¿Estás seguro de enviar la licencia?</h3>
             <p>Al confirmar, los datos serán considerados definitivos y se enviarán al sistema.</p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
-              <button type="button" onClick={cancelSend} style={{ padding: "8px 12px" }}>
+              <button type="button" onClick={() => setShowConfirm(false)} style={{ padding: "8px 12px" }}>
                 No, volver
               </button>
               <button
                 type="button"
-                onClick={confirmSend}
+                onClick={() => {
+                  setShowConfirm(false);
+                  if (pendingFormRef.current) {
+                    sendData(pendingFormRef.current).catch(() => {});
+                  }
+                }}
                 style={{ padding: "8px 12px", background: "#007bff", color: "#fff", border: "none", borderRadius: 4 }}
               >
                 Sí, confirmar y enviar

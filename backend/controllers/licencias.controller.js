@@ -251,6 +251,7 @@ export const crearLicencia = async (req, res) => {
     // --- Normalizar body (evitar undefined) ---
     const _str = (v) => (v === undefined || v === null ? null : String(v).trim());
     const folio        = _str(req.body?.folio);
+    const fecha_emision = _str(req.body?.fecha_emision);
     const fecha_inicio = _str(req.body?.fecha_inicio);
     const fecha_fin    = _str(req.body?.fecha_fin);
     const motivo       = _str(req.body?.motivo);
@@ -282,6 +283,9 @@ export const crearLicencia = async (req, res) => {
     // Validaciones mínimas
     if (!folio) return res.status(400).json({ msg: 'El folio es obligatorio' });
     const isISO = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+    if (!isISO(fecha_emision)) {
+      return res.status(400).json({ msg: 'La fecha de emisión debe ser YYYY-MM-DD' });
+    }
     if (!isISO(fecha_inicio) || !isISO(fecha_fin)) {
       return res.status(400).json({ msg: 'fecha_inicio/fecha_fin deben ser YYYY-MM-DD' });
     }
@@ -325,20 +329,70 @@ export const crearLicencia = async (req, res) => {
       return res.status(409).json({ ok:false, code:'ARCHIVO_HASH_DUPLICADO', error:`Este archivo ya fue usado en la licencia #${dup[0].id_licencia}.` });
     }
 
+    // REGLA 48 HORAS:
+    // Calcular si la fecha_emision es de hace más de 48 horas
+    let fuera_de_plazo = false;
+    if (fecha_emision) {
+      const emisionDate = new Date(fecha_emision + 'T00:00:00Z');
+      const diffHours = (new Date() - emisionDate) / (1000 * 60 * 60);
+      if (diffHours > 48) {
+        fuera_de_plazo = true;
+      }
+    }
+
     // 1) Insertar licencia (forzar NULLs donde corresponda)
     const [result] = await db.execute(
       `INSERT INTO licenciamedica
       (folio, fecha_emision, fecha_inicio, fecha_fin, estado, motivo_rechazo, motivo_medico, fecha_creacion, id_usuario)
-      VALUES (?, CURDATE(), ?, ?, 'pendiente', NULL, ?, NOW(), ?)`,
+      VALUES (?, ?, ?, ?, 'pendiente', NULL, ?, NOW(), ?)`,
       [
         folio ?? null,
+        fecha_emision ?? null,
         fecha_inicio ?? null,
         fecha_fin ?? null,
-        motivo_medico ?? null,  // ✅ AHORA SÍ TIENE SU LUGAR
+        motivo_medico ?? null,
         usuarioId ?? null
       ]
     );
     const idLicencia = result.insertId;
+
+    // 1.5) Vincular con los cursos seleccionados
+    if (cursos && cursos.length > 0) {
+       for (const id_curso of cursos) {
+          try {
+             await db.execute(
+               `INSERT IGNORE INTO licencias_entregas (id_licencia, id_curso, fecha_creacion) VALUES (?, ?, NOW())`,
+               [idLicencia, id_curso]
+             );
+          } catch(cursoErr) {
+             console.warn('❌ [crearLicencia] Error vinculando curso a licencia:', cursoErr?.message);
+          }
+       }
+    }
+
+    // Registrar en auditoría si excede el plazo
+    if (fuera_de_plazo) {
+      try {
+        const xff = req.headers['x-forwarded-for'];
+        const ip = (Array.isArray(xff) ? xff[0] : (xff || '')).split(',')[0].trim() || req.ip || 'desconocida';
+        await db.execute(
+          `INSERT INTO logauditoria (id_usuario, accion, recurso, payload, ip, fecha)
+           VALUES (?, 'emitir licencia', 'licenciamedica', ?, ?, NOW())`,
+          [
+            usuarioId,
+            JSON.stringify({ 
+              mensaje: "Licencia subida fuera de plazo (> 48 hrs de emisión)", 
+              id_licencia: idLicencia,
+              fecha_emision,
+              fuera_de_plazo: true
+            }),
+            ip
+          ]
+        );
+      } catch (auditErr) {
+        console.warn('❌ [crearLicencia] No se pudo registrar auditoría de fuera_de_plazo:', auditErr?.message);
+      }
+    }
 
     // 🔔 NUEVO: CREAR NOTIFICACIONES PARA FUNCIONARIOS (no bloqueante)
     crearNotificacionLicenciaCreada(idLicencia, usuarioId, folio, fecha_inicio, fecha_fin)
@@ -437,10 +491,11 @@ export const crearLicencia = async (req, res) => {
     return res.status(201).json({
       ok: true,
       msg: 'Licencia creada con éxito',
+      fuera_de_plazo,
       licencia: {
         id_licencia: idLicencia,
         folio,
-        fecha_emision: new Date().toISOString().slice(0, 10),
+        fecha_emision: fecha_emision ?? new Date().toISOString().slice(0, 10),
         fecha_inicio,
         fecha_fin,
         estado: 'pendiente',
