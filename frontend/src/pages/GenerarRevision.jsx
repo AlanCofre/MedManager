@@ -18,6 +18,7 @@ const calcularHashSHA256 = async (file) => {
 
 export default function GenerarRevision() {
   const { t } = useTranslation();
+  const [showCursosInfo, setShowCursosInfo] = useState(false);
 
   const initialForm = {
     folio: "",
@@ -417,16 +418,13 @@ export default function GenerarRevision() {
               >
                 <label className="block font-medium mb-2">
                   {t("studentGenerateRevision.cursosLabel")}
-                  <span
-                    className="ml-2 text-gray-400 cursor-pointer"
-                    tabIndex={0}
-                    title={t(
-                      "studentGenerateRevision.cursosHelpA11y"
-                    )}
-                    aria-label={t(
-                      "studentGenerateRevision.cursosHelpA11y"
-                    )}
-                  >
+                    <span
+                      className="ml-2 text-gray-400 cursor-pointer relative"
+                      tabIndex={0}
+                      onClick={() => setShowCursosInfo(!showCursosInfo)}
+                      title={t("studentGenerateRevision.cursosHelpA11y")}
+                      aria-label={t("studentGenerateRevision.cursosHelpA11y")}
+                    >
                     <svg
                       className="inline w-4 h-4"
                       fill="none"
@@ -446,6 +444,13 @@ export default function GenerarRevision() {
                         d="M12 16v-4m0-4h.01"
                       />
                     </svg>
+
+                    {showCursosInfo && (
+                      <div className="absolute z-10 mt-2 w-64 p-3 text-sm text-white bg-gray-800 rounded shadow-lg">
+                        Aquí debes seleccionar los cursos que se verán afectados por tu licencia médica.
+                        Solo esos cursos serán considerados para justificación de inasistencias o evaluaciones.
+                      </div>
+                    )}
                   </span>
                 </label>
                 <div className="space-y-2">
