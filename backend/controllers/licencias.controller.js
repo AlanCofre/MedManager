@@ -781,14 +781,13 @@ export const crearLicenciaLegacy = async (req, res) => {
     `;
     const [result] = await db.execute(sql, [folio, fecha_inicio, fecha_fin, motivo_medico, id_usuario]);
     
-    // 🔎 AUDIT: emitir licencia (legacy)
+    // 🔎 AUDITORÍA: emitir licencia (legacy)
     try {
-      await req.audit('emitir licencia', 'licenciamedica', {
+      await req.audit('emitir licencia', 'licencia', {
         id_licencia: result.insertId,
-        estado: 'pendiente',
-        folio,
-        fecha_inicio,
-        fecha_fin
+        id_estudiante: id_usuario,
+        fecha_envio: new Date().toISOString().split('T')[0],
+        estado: 'pendiente'
       });
     } catch (e) {
       console.warn('[audit] crearLicenciaLegacy:', e?.message || e);
@@ -857,11 +856,16 @@ export async function decidirLicencia(req, res) {
       const accion = (decisionRaw === 'aceptado') ? 'aceptar licencia' : 'rechazar licencia';
       const pl = {
         id_licencia: idLicencia,
-        estado_nuevo: decisionRaw
+        id_funcionario: actorId,
+        estado: decisionRaw,
+        fecha_resolucion: new Date().toISOString().split('T')[0],
+        observacion: req.body.observacion ?? null
       };
-      if (decisionRaw === 'rechazado') pl.motivo_rechazo = motivo_rechazo;
+      if (decisionRaw === 'rechazado') {
+        pl.motivo = motivo_rechazo;
+      }
 
-      await req.audit(accion, 'licenciamedica', pl, { userId: actorId });
+      await req.audit(accion, 'licencia', pl, { userId: actorId });
     } catch (e) {
       console.warn('[audit] decidirLicencia:', e?.message || e);
     }
@@ -996,10 +1000,12 @@ export async function cambiarEstado(req, res, next) {
     if (nuevo_estado === 'aceptado' || nuevo_estado === 'rechazado') {
       try {
         const accion = nuevo_estado === 'aceptado' ? 'aceptar licencia' : 'rechazar licencia';
-        await req.audit(accion, 'licenciamedica', {
+        await req.audit(accion, 'licencia', {
           id_licencia: lic.id_licencia,
-          estado_nuevo: nuevo_estado,
-          ...(nuevo_estado === 'rechazado' ? { motivo_rechazo: lic.motivo_rechazo ?? motivo_rechazo ?? null } : {})
+          id_funcionario: req.user?.id_usuario ?? req.user?.id ?? null,
+          fecha_resolucion: new Date().toISOString().split('T')[0],
+          estado: nuevo_estado,
+          motivo: nuevo_estado === 'rechazado' ? (lic.motivo_rechazo ?? motivo_rechazo ?? null) : null
         });
       } catch (e) {
         console.warn('[audit] cambiarEstado:', e?.message || e);

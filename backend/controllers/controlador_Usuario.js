@@ -58,10 +58,10 @@ export async function registrar(req, res) {
 
     // 🔎 AUDITORÍA: crear cuenta
     try {
-      await req.audit('crear cuenta', 'Usuario', {
-        mensaje: `Estudiante ${correo_usuario} creó su cuenta`,
-        id_usuario_creado: usuario?.id_usuario ?? usuario?.id ?? null,
-        nombre
+      await req.audit('crear cuenta', 'usuario', {
+        id_usuario: usuario?.id_usuario ?? usuario?.id ?? null,
+        email: correo_usuario,
+        rol: roleId === 2 ? 'estudiante' : `rol_${roleId}`
       })
     } catch (e) {
       console.warn('[audit] registrar:', e?.message || e)
@@ -125,17 +125,6 @@ export async function login(req, res) {
       correo_usuario,
       nombre,
       id_rol: rol
-    }
-
-    // 🔎 AUDITORÍA: iniciar sesión
-    try {
-      await req.audit('iniciar sesion', 'Usuario', {
-        mensaje: `Usuario ${id} inició sesión`,
-        email: correo_usuario,
-        rol
-      })
-    } catch (e) {
-      console.warn('[audit] login:', e?.message || e)
     }
 
     // Respuesta al frontend
