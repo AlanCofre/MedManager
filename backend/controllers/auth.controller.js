@@ -2,7 +2,6 @@
 import bcrypt from 'bcryptjs'
 import db from '../config/db.js'
 import { generarJWT } from '../utils/jwt.js'
-import { auditLog } from '../services/audit.service.js' // ⬅️ registra en logauditoria (mysql2)
 
 /**
  * POST /usuarios/login
@@ -46,22 +45,6 @@ export async function login(req, res) {
     const token = await generarJWT(u.id_usuario, rolNombre)
 
     // 🔎 AUDITORÍA: registrar inicio de sesión (con id_usuario real)
-    try {
-      await auditLog({
-        id_usuario: u.id_usuario,
-        accion: 'iniciar sesion',
-        recurso: 'Usuario',
-        payload: {
-          mensaje: `Usuario ${u.id_usuario} inició sesión`,
-          email: u.correo_usuario,
-          rol: rolNombre
-        },
-        ip: req.ip || req.headers['x-forwarded-for'] || null
-      })
-    } catch (e) {
-      // No romper el login si falla el log
-      console.warn('[audit] login audit failed:', e?.message || e)
-    }
 
     return res.json({
       ok: true,
