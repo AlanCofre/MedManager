@@ -3,17 +3,20 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
-import { Calendar, CheckCircle2, XCircle, AlertTriangle, Loader2, Plus } from "lucide-react";
+import {
+  Calendar, CheckCircle2, XCircle, AlertTriangle,
+  Loader2, Plus, Pencil, Trash2
+} from "lucide-react";
 
 // =============================== API REAL ===============================
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 async function apiRequest(path, opts = {}) {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-  
+
   const response = await fetch(`${API_BASE}/api${path}`, {
     credentials: "include",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     },
@@ -28,7 +31,7 @@ async function apiRequest(path, opts = {}) {
     } catch {
       errorMessage = await response.text() || `Error ${response.status}`;
     }
-    
+
     const err = new Error(errorMessage);
     err.status = response.status;
     throw err;
@@ -39,33 +42,32 @@ async function apiRequest(path, opts = {}) {
     const data = await response.json();
     return data.data !== undefined ? data.data : data;
   }
-  
+
   return response.blob();
 }
 
-// Obtener todos los periodos
 async function getPeriodos() {
   return apiRequest("/periodos");
 }
 
-// Obtener periodo activo actual
 async function getPeriodoActivo() {
   return apiRequest("/periodos/activo");
 }
 
-// Activar un periodo (esto automáticamente desactiva los demás según tu backend)
 async function activarPeriodo(id) {
-  return apiRequest(`/periodos/${id}/activar`, {
-    method: "PATCH"
-  });
+  return apiRequest(`/periodos/${id}/activar`, { method: "PATCH" });
 }
 
-// Crear un nuevo periodo
 async function crearPeriodo(data) {
-  return apiRequest("/periodos", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+  return apiRequest("/periodos", { method: "POST", body: JSON.stringify(data) });
+}
+
+async function editarPeriodo(id, data) {
+  return apiRequest(`/periodos/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+async function eliminarPeriodo(id) {
+  return apiRequest(`/periodos/${id}`, { method: "DELETE" });
 }
 
 // =============================== TOAST ===============================
@@ -91,26 +93,33 @@ function Toast({ kind = "error", title, desc, onClose }) {
   );
 }
 
-// =============================== MODAL ===============================
-function ConfirmModal({ open, title, message, confirmLabel = "Confirmar", cancelLabel = "Cancelar", onConfirm, onCancel, loading = false }) {
+// =============================== MODAL CONFIRMAR ===============================
+function ConfirmModal({
+  open, title, message, confirmLabel = "Confirmar", cancelLabel = "Cancelar",
+  onConfirm, onCancel, loading = false, danger = false
+}) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="text-gray-600 mt-2">{message}</p>
+      <div className="bg-white dark:bg-surface w-full max-w-md rounded-2xl shadow-xl border border-gray-100 dark:border-app p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <p className="text-gray-600 dark:text-muted mt-2">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-gray-200 dark:border-app text-gray-700 dark:text-gray-300 bg-white dark:bg-surface hover:bg-gray-50 dark:hover:bg-app disabled:opacity-50"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow disabled:opacity-50 flex items-center gap-2"
+            className={`px-4 py-2 rounded-lg text-white shadow disabled:opacity-50 flex items-center gap-2 ${
+              danger
+                ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            }`}
           >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {confirmLabel}
@@ -174,7 +183,7 @@ function CreatePeriodoModal({ open, onClose, onSuccess }) {
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => { onClose(); setCodigo(""); setError(null); }}
               disabled={loading}
               className="px-4 py-2 rounded-lg border border-gray-200 dark:border-app text-gray-700 dark:text-gray-300 bg-white dark:bg-surface hover:bg-gray-50 dark:hover:bg-app"
             >
@@ -187,6 +196,89 @@ function CreatePeriodoModal({ open, onClose, onSuccess }) {
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               Crear Periodo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// =============================== MODAL EDITAR PERIODO ===============================
+function EditPeriodoModal({ open, periodo, onClose, onSuccess }) {
+  const [codigo, setCodigo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Sincronizar cuando cambia el periodo
+  useEffect(() => {
+    if (periodo) setCodigo(periodo.codigo || "");
+    setError(null);
+  }, [periodo]);
+
+  if (!open || !periodo) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    const codigoRegex = /^\d{4}-[12]$/;
+    if (!codigoRegex.test(codigo)) {
+      setError("Formato inválido. Use AÑO-SEMESTRE (ej: 2025-1)");
+      return;
+    }
+    if (codigo === periodo.codigo) {
+      onClose();
+      return;
+    }
+    setLoading(true);
+    try {
+      await editarPeriodo(periodo.id_periodo, { codigo });
+      onSuccess(codigo);
+    } catch (e) {
+      setError(e.message || "Error al editar el periodo");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+      <div className="bg-white dark:bg-surface w-full max-w-md rounded-2xl shadow-xl border border-gray-100 dark:border-app p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Editar Periodo</h3>
+        <p className="text-sm text-gray-600 dark:text-muted mt-1">
+          Modifica el código del periodo <span className="font-medium text-gray-800 dark:text-gray-200">{periodo.codigo}</span>.
+        </p>
+        <form onSubmit={handleSubmit} className="mt-4">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nuevo Código (Ej: 2025-1)
+            </label>
+            <input
+              type="text"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+              placeholder="YYYY-S"
+              required
+              className="w-full px-3 py-2 border border-gray-300 dark:border-app rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-app text-gray-900 dark:text-white outline-none"
+            />
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => { onClose(); setError(null); }}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-app text-gray-700 dark:text-gray-300 bg-white dark:bg-surface hover:bg-gray-50 dark:hover:bg-app"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow flex items-center gap-2"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              Guardar cambios
             </button>
           </div>
         </form>
@@ -209,11 +301,22 @@ export default function AdminPeriodos() {
   const [toast, setToast] = useState(null);
   const closeToast = () => setToast(null);
 
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  // — Activar
+  const [confirmActivarOpen, setConfirmActivarOpen] = useState(false);
   const [toActivate, setToActivate] = useState(null);
   const [activating, setActivating] = useState(false);
 
+  // — Crear
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // — Editar
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [toEdit, setToEdit] = useState(null);
+
+  // — Eliminar
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const activoNombre = useMemo(() => {
     if (!activo?.id_periodo) return null;
@@ -225,76 +328,71 @@ export default function AdminPeriodos() {
     setLoading(true);
     setError(null);
     try {
-      console.log('🔄 Cargando periodos...');
       const [all, act] = await Promise.all([getPeriodos(), getPeriodoActivo()]);
-      
-      console.log('📊 Periodos recibidos:', all);
-      console.log('🎯 Periodo activo:', act);
-      
       setPeriodos(all);
       setActivo(act);
     } catch (e) {
-      console.error('❌ Error cargando periodos:', e);
       setError(e?.message || "Error al cargar periodos");
-      
-      // Si es error 404 en periodo activo, no es crítico
       if (e.status === 404 && e.message?.includes('periodo activo')) {
         setActivo(null);
-        setError(null); // No mostrar error por falta de periodo activo
+        setError(null);
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  useEffect(() => { refetch(); }, [refetch]);
 
-  // Acción: solicitar confirmación
-  const onAskActivate = (id) => {
-    setToActivate(id);
-    setConfirmOpen(true);
-  };
+  // ─── Activar ───
+  const onAskActivate = (id) => { setToActivate(id); setConfirmActivarOpen(true); };
 
-  // Acción: activar confirmado
   const onConfirmActivate = async () => {
     if (!toActivate) return;
-    
     setActivating(true);
     try {
-      console.log('🎯 Activando periodo:', toActivate);
       await activarPeriodo(toActivate);
-
-      // Notificar al resto de la app
       const periodo = periodos.find((p) => p.id_periodo === toActivate);
-      window.dispatchEvent(new CustomEvent("periodoActivoChanged", { 
-        detail: { 
-          id_periodo: toActivate, 
-          codigo: periodo?.codigo 
-        } 
+      window.dispatchEvent(new CustomEvent("periodoActivoChanged", {
+        detail: { id_periodo: toActivate, codigo: periodo?.codigo }
       }));
-
-      setToast({ 
-        kind: "success", 
-        title: "Periodo activado", 
-        desc: `Ahora el periodo activo es ${periodo?.codigo}.` 
-      });
-
-      // Refrescar datos
+      setToast({ kind: "success", title: "Periodo activado", desc: `Ahora el periodo activo es ${periodo?.codigo}.` });
       await refetch();
-      
     } catch (e) {
-      console.error('❌ Error activando periodo:', e);
-      setToast({
-        kind: "error",
-        title: "No se pudo activar el periodo",
-        desc: e?.message || "Intenta nuevamente."
-      });
+      setToast({ kind: "error", title: "No se pudo activar el periodo", desc: e?.message || "Intenta nuevamente." });
     } finally {
       setActivating(false);
-      setConfirmOpen(false);
+      setConfirmActivarOpen(false);
       setToActivate(null);
+    }
+  };
+
+  // ─── Editar ───
+  const onAskEdit = (periodo) => { setToEdit(periodo); setEditModalOpen(true); };
+
+  const onEditSuccess = async (nuevoCodigo) => {
+    setEditModalOpen(false);
+    setToEdit(null);
+    setToast({ kind: "success", title: "Periodo actualizado", desc: `El código ha sido cambiado a ${nuevoCodigo}.` });
+    await refetch();
+  };
+
+  // ─── Eliminar ───
+  const onAskDelete = (periodo) => { setToDelete(periodo); setConfirmDeleteOpen(true); };
+
+  const onConfirmDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await eliminarPeriodo(toDelete.id_periodo);
+      setToast({ kind: "success", title: "Periodo eliminado", desc: `El periodo ${toDelete.codigo} fue eliminado.` });
+      await refetch();
+    } catch (e) {
+      setToast({ kind: "error", title: "No se pudo eliminar", desc: e?.message || "Intenta nuevamente." });
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteOpen(false);
+      setToDelete(null);
     }
   };
 
@@ -313,7 +411,6 @@ export default function AdminPeriodos() {
     );
   }
 
-  // Verificar permisos
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-100 to-blue-300 dark:bg-app dark:bg-none">
@@ -323,10 +420,7 @@ export default function AdminPeriodos() {
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Acceso Denegado</h1>
             <p className="text-gray-600 dark:text-muted">No tienes permisos para administrar periodos académicos.</p>
-            <Link
-              to="/admin"
-              className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
+            <Link to="/admin" className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               Volver al Panel
             </Link>
           </div>
@@ -341,7 +435,8 @@ export default function AdminPeriodos() {
       <Navbar />
       <main className="flex-1 w-full">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-6xl">
-          {/* Banner de advertencia si no hay periodo activo */}
+
+          {/* Banner advertencia sin periodo activo */}
           {!activo?.id_periodo && (
             <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-900 dark:text-yellow-300 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
               <AlertTriangle className="h-5 w-5 mt-0.5 text-yellow-700 dark:text-yellow-400" />
@@ -352,7 +447,7 @@ export default function AdminPeriodos() {
             </div>
           )}
 
-          {/* Panel superior: Periodo activo */}
+          {/* Panel superior */}
           <div className="mb-8 bg-white dark:bg-surface rounded-2xl shadow-lg p-8 border border-gray-100 dark:border-app">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -406,7 +501,10 @@ export default function AdminPeriodos() {
                         Estado
                       </th>
                       <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
-                        Acción
+                        Activar
+                      </th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-blue-200 uppercase tracking-wider">
+                        Acciones
                       </th>
                     </tr>
                   </thead>
@@ -448,6 +546,59 @@ export default function AdminPeriodos() {
                               </button>
                             )}
                           </td>
+                        <td className="px-6 py-5 whitespace-nowrap text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {/* Botón Editar — deshabilitado si es activo o tiene cursos */}
+                              {(isActive || p.cursosCount > 0) ? (
+                                <button
+                                  disabled
+                                  title={
+                                    isActive
+                                      ? "No se puede editar el periodo activo"
+                                      : `No se puede editar: tiene ${p.cursosCount} ramo(s) inscrito(s)`
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-app border border-gray-200 dark:border-app cursor-not-allowed opacity-50"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                  Editar
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => onAskEdit(p)}
+                                  title="Editar periodo"
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                  Editar
+                                </button>
+                              )}
+
+                              {/* Botón Eliminar — deshabilitado si es activo o tiene cursos */}
+                              {(isActive || p.cursosCount > 0) ? (
+                                <button
+                                  disabled
+                                  title={
+                                    isActive
+                                      ? "No se puede eliminar el periodo activo"
+                                      : `No se puede eliminar: tiene ${p.cursosCount} ramo(s) inscrito(s)`
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-app border border-gray-200 dark:border-app cursor-not-allowed opacity-50"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Eliminar
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => onAskDelete(p)}
+                                  title="Eliminar periodo"
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Eliminar
+                                </button>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -457,7 +608,12 @@ export default function AdminPeriodos() {
             )}
           </div>
 
-          {/* Link back opcional */}
+          {/* Leyenda */}
+          <p className="text-xs text-gray-500 dark:text-muted mt-3 px-1">
+            * Solo se pueden editar o eliminar periodos sin ramos registrados y que no estén activos.
+          </p>
+
+          {/* Link back */}
           <div className="text-center mt-6">
             <Link
               to="/admin"
@@ -470,9 +626,9 @@ export default function AdminPeriodos() {
       </main>
       <Footer />
 
-      {/* Modal de confirmación */}
+      {/* Modal confirmar ACTIVAR */}
       <ConfirmModal
-        open={confirmOpen}
+        open={confirmActivarOpen}
         title="Activar periodo"
         message={
           toActivate
@@ -482,11 +638,33 @@ export default function AdminPeriodos() {
         confirmLabel="Activar"
         cancelLabel="Cancelar"
         onConfirm={onConfirmActivate}
-        onCancel={() => {
-          setConfirmOpen(false);
-          setToActivate(null);
-        }}
+        onCancel={() => { setConfirmActivarOpen(false); setToActivate(null); }}
         loading={activating}
+      />
+
+      {/* Modal EDITAR */}
+      <EditPeriodoModal
+        open={editModalOpen}
+        periodo={toEdit}
+        onClose={() => { setEditModalOpen(false); setToEdit(null); }}
+        onSuccess={onEditSuccess}
+      />
+
+      {/* Modal confirmar ELIMINAR */}
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        danger
+        title="Eliminar periodo"
+        message={
+          toDelete
+            ? `¿Estás seguro de eliminar el periodo "${toDelete.codigo}"? Esta acción es irreversible y solo es posible si el periodo no tiene ramos registrados.`
+            : "¿Eliminar periodo?"
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={onConfirmDelete}
+        onCancel={() => { setConfirmDeleteOpen(false); setToDelete(null); }}
+        loading={deleting}
       />
 
       {/* Toast */}
@@ -494,17 +672,13 @@ export default function AdminPeriodos() {
         <Toast kind={toast.kind} title={toast.title} desc={toast.desc} onClose={closeToast} />
       )}
 
-      {/* Modal de Crear */}
+      {/* Modal Crear */}
       <CreatePeriodoModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSuccess={(codigo) => {
           setCreateModalOpen(false);
-          setToast({
-            kind: "success",
-            title: "Periodo creado",
-            desc: `El periodo ${codigo} se ha creado exitosamente.`,
-          });
+          setToast({ kind: "success", title: "Periodo creado", desc: `El periodo ${codigo} se ha creado exitosamente.` });
           refetch();
         }}
       />
