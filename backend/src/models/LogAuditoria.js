@@ -15,7 +15,7 @@ LogAuditoria.init(
         'crear cuenta',
         'actualizar cuenta',
         'iniciar sesion',
-        'recuperar contrasena',
+        'recuperar contraseña',
         'emitir licencia',
         'aceptar licencia',
         'rechazar licencia'

@@ -1,5 +1,7 @@
 // backend/controllers/periodo.controller.js
+import { Op, fn, col, literal } from 'sequelize';
 import Periodo from '../src/models/modelo_Periodo.js';
+import Curso from '../src/models/modelo_Curso.js';
 
 // helper simple de respuestas
 function ok(res, data, mensaje = 'OK') {
@@ -19,7 +21,15 @@ export const listarPeriodos = async (req, res) => {
       order: [['codigo', 'DESC']]
     });
 
-    return ok(res, periodos);
+    // Enriquecer con conteo de cursos para cada período
+    const periodosConConteo = await Promise.all(
+      periodos.map(async (p) => {
+        const cursosCount = await Curso.count({ where: { id_periodo: p.id_periodo } });
+        return { ...p.toJSON(), cursosCount };
+      })
+    );
+
+    return ok(res, periodosConConteo);
   } catch (error) {
     console.error('[periodos] error listando:', error);
     return fail(res, 'Error interno al listar períodos', 500);
@@ -187,9 +197,19 @@ export const actualizarPeriodo = async (req, res) => {
       return fail(res, 'Formato de código inválido. Use: AÑO-SEMESTRE (ej: 2025-1, 2025-2)');
     }
 
+    // Verificar si tiene cursos/ramos asociados
+    const cursosAsociados = await Curso.count({ where: { id_periodo: id } });
+    if (cursosAsociados > 0) {
+      return fail(
+        res,
+        `No se puede editar: el período tiene ${cursosAsociados} ramo(s) registrado(s).`,
+        400
+      );
+    }
+
     // Verificar que no exista otro período con el mismo código
     const existe = await Periodo.findOne({ 
-      where: { codigo, id_periodo: { $ne: id } }
+      where: { codigo, id_periodo: { [Op.ne]: id } }
     });
     if (existe) {
       return fail(res, 'Ya existe otro período con ese código', 409);
@@ -208,5 +228,42 @@ export const actualizarPeriodo = async (req, res) => {
     }
     
     return fail(res, 'Error interno al actualizar período', 500);
+  }
+};
+
+/**
+ * DELETE /periodos/:id - Eliminar período (solo si no tiene cursos)
+ */
+export const eliminarPeriodo = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const periodo = await Periodo.findByPk(id);
+    if (!periodo) {
+      return fail(res, 'Período no encontrado', 404);
+    }
+
+    // No permitir eliminar el periodo activo
+    if (periodo.activo) {
+      return fail(res, 'No se puede eliminar el período activo. Activa otro período primero.', 400);
+    }
+
+    // Verificar si tiene cursos/ramos asociados
+    const cursosAsociados = await Curso.count({ where: { id_periodo: id } });
+    if (cursosAsociados > 0) {
+      return fail(
+        res,
+        `No se puede eliminar: el período tiene ${cursosAsociados} ramo(s) registrado(s).`,
+        400
+      );
+    }
+
+    await periodo.destroy();
+
+    return ok(res, { id_periodo: Number(id) }, 'Período eliminado correctamente');
+
+  } catch (error) {
+    console.error('[periodos] error eliminando:', error);
+    return fail(res, 'Error interno al eliminar período', 500);
   }
 };

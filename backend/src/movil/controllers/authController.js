@@ -22,10 +22,23 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
 
     // Insertar nuevo usuario
-    await db.query(
+    const [result] = await db.query(
       "INSERT INTO usuario (correo_usuario, nombre, contrasena, id_rol) VALUES (?, ?, ?, ?)",
       [correo_usuario, nombre, hashedPassword, id_rol || 2] // 2 = usuario normal
     );
+
+    // Auditoría (si está montado)
+    if (typeof req.audit === 'function') {
+      try {
+        await req.audit('crear cuenta', 'usuario', {
+          id_usuario: result.insertId,
+          email: correo_usuario,
+          rol: id_rol === 1 ? 'profesor' : id_rol === 3 ? 'funcionario' : 'estudiante'
+        });
+      } catch (e) {
+        console.warn('[audit] registerUser:', e?.message || e);
+      }
+    }
 
     res.json({ message: "Usuario registrado correctamente ✅" });
   } catch (error) {

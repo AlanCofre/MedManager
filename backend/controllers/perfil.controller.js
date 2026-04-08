@@ -103,9 +103,10 @@ export async function guardarMiPerfil(req, res) {
 
     // 🧾 Auditoría: actualización de perfil
     try {
-      await req.audit('actualizar cuenta', 'Usuario', {
-        mensaje: `Estudiante ${req.user.id_usuario} actualizó su cuenta`,
-        campos_modificados: Object.keys(req.body || {})
+      await req.audit('actualizar cuenta', 'usuario', {
+        id_usuario,
+        campos_modificados: Object.keys(req.body || {}),
+        rol: req.user?.rol ?? null
       })
     } catch (e) {
       console.warn('[audit] actualizarPerfil:', e?.message || e)

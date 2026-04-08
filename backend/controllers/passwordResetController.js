@@ -44,8 +44,7 @@ export const requestPasswordReset = async (req, res) => {
     if (!rows.length) {
       // 🔎 Auditar también el intento para un correo inexistente
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
-          mensaje: 'Solicitud de código de recuperación (email no encontrado)',
+        await req.audit('recuperar contraseña', 'autenticación', {
           email,
           resultado: 'email_inexistente'
         })
@@ -72,10 +71,10 @@ export const requestPasswordReset = async (req, res) => {
 
     // ✅ Auditar solicitud EXITOSA de código
     try {
-      await req.audit('recuperar contraseña', 'Usuario', {
-        mensaje: 'Solicitud de código de recuperación',
+      await req.audit('recuperar contraseña', 'autenticación', {
         email,
-        id_usuario
+        id_usuario,
+        resultado: 'token_enviado'
       })
     } catch (e) {
       console.warn('[audit] password-reset/request:', e?.message || e)
@@ -132,8 +131,7 @@ export const confirmPasswordReset = async (req, res) => {
     if (!entry || entry.used || entry.expiresAt.getTime() <= Date.now()) {
       // Auditar código inválido/expirado
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
-          mensaje: 'Código inválido o expirado',
+        await req.audit('recuperar contraseña', 'autenticación', {
           email,
           id_usuario,
           resultado: 'codigo_invalido_o_expirado'
@@ -147,8 +145,7 @@ export const confirmPasswordReset = async (req, res) => {
     if (entry.attempts >= MAX_ATTEMPTS) {
       // Auditar demasiados intentos
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
-          mensaje: 'Demasiados intentos de verificación',
+        await req.audit('recuperar contraseña', 'autenticación', {
           email,
           id_usuario,
           intentos: entry.attempts,
@@ -169,8 +166,7 @@ export const confirmPasswordReset = async (req, res) => {
 
       // Auditar código incorrecto
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
-          mensaje: 'Código incorrecto',
+        await req.audit('recuperar contraseña', 'autenticación', {
           email,
           id_usuario,
           intentos: entry.attempts,
@@ -214,8 +210,7 @@ export const confirmPasswordReset = async (req, res) => {
 
       // ✅ Auditar éxito de restablecimiento
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
-          mensaje: 'Contraseña restablecida correctamente',
+        await req.audit('recuperar contraseña', 'autenticación', {
           email,
           id_usuario,
           resultado: 'ok'

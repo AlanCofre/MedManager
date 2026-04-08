@@ -89,6 +89,9 @@ export function AuthProvider({ children }) {
       value={{
         user,
         token,
+        // helper boolean to check admin privileges on the frontend
+        isAdmin: String(user?.role || user?.rol || user?.id_rol || "").toLowerCase() === "admin" ||
+                 String(user?.role || user?.rol || user?.id_rol || "").toLowerCase() === "administrador",
         loading: isAuthenticating,
         isAuthenticated: !!user && !!token,
         login,

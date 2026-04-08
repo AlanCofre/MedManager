@@ -356,25 +356,7 @@ async function registrarNotificacionesYAuditoria({
   ip = '0.0.0.0',
   conn // Sequelize transaction
 }) {
-  // Auditoría
-  await conn.sequelize.query(
-    `INSERT INTO logauditoria (accion, recurso, payload, ip, fecha, id_usuario)
-     VALUES (?, ?, ?, ?, NOW(), ?)`,
-    {
-      replacements: [
-        'cambiar estado',
-        'licenciamedica',
-        JSON.stringify({
-          id_licencia: licencia.id_licencia,
-          estado_anterior: licencia.estado,
-          estado_nuevo: estado
-        }),
-        ip,
-        actorId
-      ],
-      transaction: conn
-    }
-  );
+  // Auditoría se registra en el controlador que invoca esta función (e.g. decidirLicencia)
 
   // Notificación al estudiante
   if (licencia.id_usuario) {
