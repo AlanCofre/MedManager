@@ -329,15 +329,15 @@ export const crearLicencia = async (req, res) => {
       return res.status(409).json({ ok:false, code:'ARCHIVO_HASH_DUPLICADO', error:`Este archivo ya fue usado en la licencia #${dup[0].id_licencia}.` });
     }
 
-    // REGLA 48 HORAS:
-    // Calcular si la fecha_emision es de hace más de 48 horas
+// 🔔 VALIDACIÓN 48 HORAS
     let fuera_de_plazo = false;
     if (fecha_emision) {
-      const emisionDate = new Date(fecha_emision + 'T00:00:00Z');
-      const diffHours = (new Date() - emisionDate) / (1000 * 60 * 60);
-      if (diffHours > 48) {
-        fuera_de_plazo = true;
-      }
+      const emisionDate = new Date(fecha_emision + 'T00:00:00');
+      const diffHoras = (new Date() - emisionDate) / (1000 * 60 * 60);
+      fuera_de_plazo = diffHoras > 48;
+      
+      // Log (opcional)
+      console.log(`[48h] Folio ${folio}: ${Math.round(diffHoras)}h${fuera_de_plazo ? ' ← FUERA DE PLAZO' : ''}`);
     }
 
     // 1) Insertar licencia (forzar NULLs donde corresponda)
@@ -490,6 +490,7 @@ export const crearLicencia = async (req, res) => {
 
     return res.status(201).json({
       ok: true,
+      fuera_de_plazo,
       msg: 'Licencia creada con éxito',
       fuera_de_plazo,
       licencia: {

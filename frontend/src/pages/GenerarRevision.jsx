@@ -229,7 +229,17 @@ export default function GenerarRevision() {
       }
 
       // ✅ Éxito
-      setToast({ message: "Licencia enviada correctamente", type: "success" });
+      if (data?.fuera_de_plazo) {
+        setToast({
+          message: "Licencia enviada correctamente. Atención: fue registrada fuera del plazo de 48 horas.",
+          type: "success"
+        });
+      } else {
+        setToast({
+          message: "Licencia enviada correctamente",
+          type: "success"
+        });
+      }
       setFormData(initialForm);
       setFile(null);
       setSelectedCursos([]);
