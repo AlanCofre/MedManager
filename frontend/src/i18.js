@@ -585,6 +585,119 @@ const resources = {
         },
       },
 
+      // 🧩 Historial Licencias
+      historialLicencias: {
+      loading: "Cargando historial...",
+      errorTitle: "No se pudo cargar el historial",
+      retry: "Reintentar",
+
+      title: "Historial de Licencias Médicas",
+      subtitle: "Registros de licencias verificadas y rechazadas",
+
+      filters: {
+        date: "Fecha (Emisión)",
+        estado: "Estado",
+        all: "Todos",
+        verified: "Verificada",
+        rejected: "Rechazada",
+        searchPlaceholder: "Buscar por estudiante...",
+        clear: "Limpiar filtros",
+        asc: "Ascendente ▲",
+        desc: "Descendente ▼",
+      },
+
+      table: {
+        student: "Estudiante",
+        dates: "Fechas",
+        status: "Estado",
+        detail: "Detalle",
+        id: "ID",
+        emission: "Emisión",
+        start: "Inicio",
+        end: "Fin",
+        viewDetail: "Ver Detalle",
+      },
+    
+      empty: {
+        title: "No hay registros en el historial",
+        subtitle: "No se encontraron licencias según los filtros.",
+      }
+      },
+
+      // 🧩 Licencia Nueva
+      licenciaNueva: {
+        title: "Nueva Licencia - Selecciona Cursos",
+
+        error: {
+          load: "Error al cargar cursos. Intenta nuevamente.",
+          retry: "Reintentar",
+        },
+      
+        noPeriodo: "No hay un periodo académico activo. No puedes solicitar licencia en este momento.",
+      
+        loading: "Cargando cursos...",
+      
+        empty: {
+          noCursos: "No tienes cursos activos.",
+          verMatriculas: "Ver matrículas",
+        },
+      
+        search: {
+          placeholder: "Buscar por código o nombre...",
+          aria: "Buscar curso",
+          help: "Solo se muestran cursos del periodo activo.",
+          noResults: "No hay cursos que coincidan.",
+        },
+      
+        course: {
+          section: "Sección",
+          professorPrefix: "Prof.",
+        }
+      },
+
+      // 🧩 Licencias Estudiante
+      licenciasEstudiante: {
+        title: "Mis Licencias",
+        subtitle: "Revisa el estado de tus solicitudes",
+            
+        filters: {
+          searchLabel: "Buscar (ID o Folio)",
+          searchPlaceholder: "Ej: 12 o FOL-2025-0012",
+          date: "Fecha (Emisión)",
+          estado: "Estado",
+          all: "Todos",
+          asc: "Ascendente ▲",
+          desc: "Descendente ▼",
+          refresh: "Actualizar",
+          refreshing: "Actualizando...",
+          clear: "Limpiar filtros",
+        },
+      
+        counters: {
+          pendientes: "Pendientes",
+          aceptadas: "Aceptadas",
+          rechazadas: "Rechazadas",
+          total: "Totales",
+        },
+      
+        empty: {
+          noLicencias: "No hay licencias registradas",
+          noResultados: "No hay resultados",
+          noLicenciasDesc: "Aún no has solicitado ninguna licencia médica.",
+          noResultadosDesc: "No se encontraron resultados según tus filtros o búsqueda.",
+        },
+      
+        table: {
+          dates: "Fechas",
+          estado: "Estado",
+          folio: "Folio",
+          action: "Acción",
+          emission: "Emisión",
+          start: "Inicio",
+          end: "Fin",
+          viewDetail: "Ver Detalle",
+        }
+      }
     },
   },
 
@@ -1172,6 +1285,119 @@ const resources = {
         },
       },
 
+      // 🧩 Historial Licencias
+      historialLicencias: {
+        loading: "Loading history...",
+        errorTitle: "Could not load history",
+        retry: "Retry",
+
+        title: "Medical License History",
+        subtitle: "Records of verified and rejected licenses",
+
+        filters: {
+          date: "Date (Emission)",
+          estado: "Status",
+          all: "All",
+          verified: "Verified",
+          rejected: "Rejected",
+          searchPlaceholder: "Search by student...",
+          clear: "Clear filters",
+          asc: "Ascending ▲",
+          desc: "Descending ▼",
+        },
+      
+        table: {
+          student: "Student",
+          dates: "Dates",
+          status: "Status",
+          detail: "Detail",
+          id: "ID",
+          emission: "Emission",
+          start: "Start",
+          end: "End",
+          viewDetail: "View Detail",
+        },
+      
+        empty: {
+          title: "No records in history",
+          subtitle: "No licenses found with current filters.",
+        }
+      },
+
+      // 🧩 Licencia Nueva
+      licenciaNueva: {
+        title: "New License - Select Courses",
+
+        error: {
+          load: "Error loading courses. Try again.",
+          retry: "Retry",
+        },
+      
+        noPeriodo: "There is no active academic period. You cannot request a license at this time.",
+      
+        loading: "Loading courses...",
+      
+        empty: {
+          noCursos: "You have no active courses.",
+          verMatriculas: "View enrollments",
+        },
+      
+        search: {
+          placeholder: "Search by code or name...",
+          aria: "Search course",
+          help: "Only courses from the active period are shown.",
+          noResults: "No matching courses found.",
+        },
+      
+        course: {
+          section: "Section",
+          professorPrefix: "Prof.",
+        }
+      },
+
+      // 🧩 Licencias Estudiante
+      licenciasEstudiante: {
+        title: "My Licenses",
+        subtitle: "Check the status of your requests",
+
+        filters: {
+          searchLabel: "Search (ID or Folio)",
+          searchPlaceholder: "Ex: 12 or FOL-2025-0012",
+          date: "Date (Emission)",
+          estado: "Status",
+          all: "All",
+          asc: "Ascending ▲",
+          desc: "Descending ▼",
+          refresh: "Refresh",
+          refreshing: "Refreshing...",
+          clear: "Clear filters",
+        },
+      
+        counters: {
+          pendientes: "Pending",
+          aceptadas: "Accepted",
+          rechazadas: "Rejected",
+          total: "Total",
+        },
+      
+        empty: {
+          noLicencias: "No licenses found",
+          noResultados: "No results",
+          noLicenciasDesc: "You haven't requested any medical licenses yet.",
+          noResultadosDesc: "No results found with your filters or search.",
+        },
+      
+        table: {
+          dates: "Dates",
+          estado: "Status",
+          folio: "Folio",
+          action: "Action",
+          emission: "Emission",
+          start: "Start",
+          end: "End",
+          viewDetail: "View Detail",
+        }
+      }
     },
   },
 };
