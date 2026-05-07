@@ -2,7 +2,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import db from '../config/db.js'; // mysql2/promise pool
-import { generateRecoveryCode } from "../src/utils/Codigoverificacion.js";
+import { generateRecoveryCode } from "../utils/Codigoverificacion.js";
 import { enviarCodigoRecuperacion } from "../services/servicio_Correo.js";
 
 

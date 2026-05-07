@@ -1,6 +1,6 @@
 // controllers/perfil.controller.js
 import db from "../config/db.js";
-import { validarPerfilPayload } from "../src/utils/validaciones_perfil.js"; // valida email_alt, numero_telef, direccion, foto_url
+import { validarPerfilPayload } from "../utils/validaciones_perfil.js"; // valida email_alt, numero_telef, direccion, foto_url
 // Nota: este controlador usa SQL plano contra tablas: usuario, perfil
 
 function _buildPerfilFromRow(row) {

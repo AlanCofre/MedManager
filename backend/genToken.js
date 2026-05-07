@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: './.env' }); // asume backend/.env
 
-import { generarJWT } from './src/utils/jwt.js'; // usa tu helper existente
+import { generarJWT } from './utils/jwt.js'; // usa tu helper existente
 
 (async () => {
   const idArg = process.argv[2] || '8';    // id_usuario
