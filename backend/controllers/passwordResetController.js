@@ -114,7 +114,7 @@ export const confirmPasswordReset = async (req, res) => {
     if (!u.length) {
       // Auditar intento de confirmación para email inexistente (neutral)
       try {
-        await req.audit('recuperar contraseña', 'Usuario', {
+        await req.audit('recuperar contraseña', 'autenticación', {
           mensaje: 'Intento de confirmación con email no encontrado',
           email,
           resultado: 'email_inexistente'
@@ -243,8 +243,19 @@ export const sendPasswordResetCode = async (req, res) => {
       [email]
     )
     if (!rows.length) {
+      // 🔎 Auditar intento para correo inexistente
+      try {
+        await req.audit('recuperar contraseña', 'autenticación', {
+          email,
+          resultado: 'email_inexistente'
+        })
+      } catch (e) {
+        console.warn('[audit] sendPasswordResetCode (no existe):', e?.message || e)
+      }
       return res.status(404).json({ error: 'Usuario no encontrado' })
     }
+
+    const id_usuario = rows[0].id_usuario
 
     const code = generateRecoveryCode()
     const expiresAt = new Date(Date.now() + Number(process.env.RESET_CODE_TTL_MIN || 10) * 60000)
@@ -252,6 +263,17 @@ export const sendPasswordResetCode = async (req, res) => {
     console.log(`🔐 Código generado para ${email}: ${code}`)
 
     const enviado = await enviarCodigoRecuperacion(email, code)
+
+    // ✅ Auditar envío exitoso
+    try {
+      await req.audit('recuperar contraseña', 'autenticación', {
+        email,
+        id_usuario,
+        resultado: 'token_enviado'
+      })
+    } catch (e) {
+      console.warn('[audit] sendPasswordResetCode:', e?.message || e)
+    }
 
     if (!enviado) {
       return res.status(500).json({
