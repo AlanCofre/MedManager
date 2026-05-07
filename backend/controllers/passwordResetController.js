@@ -243,7 +243,6 @@ export const sendPasswordResetCode = async (req, res) => {
       [email]
     )
     if (!rows.length) {
-      // 🔎 Auditar intento para correo inexistente
       try {
         await req.audit('recuperar contraseña', 'autenticación', {
           email,
@@ -264,7 +263,7 @@ export const sendPasswordResetCode = async (req, res) => {
 
     const enviado = await enviarCodigoRecuperacion(email, code)
 
-    // ✅ Auditar envío exitoso
+
     try {
       await req.audit('recuperar contraseña', 'autenticación', {
         email,
