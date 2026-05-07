@@ -35,6 +35,8 @@ import EstudianteRegularidad from "./pages/EstudianteRegularidad.jsx";
 import SecretariaLicenciasAlerta from "./pages/SecretariaLicenciasAlerta";
 import DashboardProfesor from "./pages/DashboardProfesor";
 import NotificacionesProfesorPage from "./pages/NotificacionesProfesorPage";
+import TestRoleAssign from "./pages/TestRoleAssign";
+import AssignRole from "./pages/AssignRole";
 export default function AppRoutes() {
   return (
     <Routes>
@@ -78,6 +80,8 @@ export default function AppRoutes() {
       <Route path="/licencias-evaluadas/:id" element={<LicenciasEvaluadas />} />
       <Route path="/admin/periodo/resumen" element={<AdminResumenPeriodo />} />
       <Route path="/secretaria/alertas-licencias" element={<SecretariaLicenciasAlerta />} />
+      <Route path="/test/role-assign" element={<TestRoleAssign />} />
+      <Route path="/admin/assign-role" element={<AssignRole />} />
 
       <Route path="/pendientes" element={<Dashboard />} />
       <Route path="/revisadas" element={<Dashboard />} />
