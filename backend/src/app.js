@@ -24,7 +24,7 @@ import funcionarioRoutes from './routes/funcionario.routes.js';
 import periodoRoutes from './routes/periodo.route.js';
 import entregasRoutes from './routes/entregas.routes.js';
 import profesorRoutes from './routes/profesor.routes.js';
-import movilRouter from "./movil/movil.routes.js";
+
 
 
 const app = express();
@@ -83,7 +83,7 @@ app.use('/api/cursos', cursoRoutes);
 app.use('/api/matriculas', matriculasRoutes);
 app.use('/funcionario', funcionarioRoutes);
 app.use('/api/admin', adminRoutes);
-app.use("/api/movil", movilRouter);
+
 app.use(reportesRouter);
 
 // Profesor

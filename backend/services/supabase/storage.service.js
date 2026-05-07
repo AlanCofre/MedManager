@@ -1,6 +1,6 @@
 // backend/services/supabase/storage.service.js
 import crypto from 'crypto';
-import { supabase } from '../../src/supabase/supabaseClient.js';
+import { supabase } from './supabaseClient.js';
 
 const BUCKET = process.env.SUPABASE_BUCKET_LICENCIAS || 'licencias';
 

@@ -1,4 +1,4 @@
-import pool from '../db/db.js';
+import pool from '../config/db.js';
 
 function isSha256Hex(s) {
   return typeof s === 'string' && /^[0-9a-f]{64}$/i.test(s);

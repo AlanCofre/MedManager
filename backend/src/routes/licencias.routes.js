@@ -1,7 +1,7 @@
 // backend/src/routes/licencias.routes.js
 import { Router } from 'express';
 import multer from 'multer';
-import db from '../../db/db.js';
+import db from '../../config/db.js';
 import {
   crearLicencia,
   listarLicencias,

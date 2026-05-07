@@ -1,6 +1,6 @@
 // backend/src/routes/ruta_Licencia.js
 import express from 'express';
-import db from '../../db/db.js'; // asegúrate que el archivo db.js exporte por defecto la conexión
+import db from '../../config/db.js'; // asegúrate que el archivo db.js exporte por defecto la conexión
 
 const router = express.Router();
 

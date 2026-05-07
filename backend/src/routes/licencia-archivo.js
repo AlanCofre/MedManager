@@ -1,7 +1,7 @@
 // backend/src/routes/licenciaarchivo.route.js
 import { Router } from 'express';
 import multer from 'multer';
-import db from '../../db/db.js'; // ajusta si tu DB está en otro lugar
+import db from '../../config/db.js'; // ajusta si tu DB está en otro lugar
 
 const UPLOAD_MAX_MB = parseInt(process.env.UPLOAD_MAX_MB || '5', 10);
 const ALLOWED = (process.env.UPLOAD_ALLOWED_MIME || 'application/pdf,image/jpeg,image/png').split(',');
